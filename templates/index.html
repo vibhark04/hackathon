@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Flag Quiz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .ai-badge {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .difficulty-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .difficulty-star {
+            color: #feca57;
+            font-size: 18px;
+        }
+        .flag-image {
+            max-width: 350px;
+            max-height: 250px;
+            border: 4px solid #333;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .option-btn {
+            padding: 18px;
+            font-size: 16px;
+            border: 2px solid #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            color: #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .option-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .option-btn.correct {
+            background: #51cf66;
+            color: white;
+            border-color: #51cf66;
+        }
+        .option-btn.incorrect {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+        .score-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .score-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .score-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #a0aec0;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #718096;
+        }
+        .btn-hint {
+            background: #feca57;
+            color: white;
+        }
+        .btn-hint:hover {
+            background: #ffd93d;
+        }
+        .btn-analytics {
+            background: #ff6b6b;
+            color: white;
+        }
+        .btn-analytics:hover {
+            background: #fa5252;
+        }
+        .feedback {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+        .feedback.correct {
+            background: rgba(81, 207, 102, 0.2);
+            color: #2b8a3e;
+            border: 2px solid #51cf66;
+        }
+        .feedback.incorrect {
+            background: rgba(255, 107, 107, 0.2);
+            color: #c92a2a;
+            border: 2px solid #ff6b6b;
+        }
+        .hint-box {
+            background: rgba(254, 202, 87, 0.2);
+            border: 2px solid #feca57;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #b7791f;
+        }
+        .fun-fact {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #4c51bf;
+            font-style: italic;
+        }
+        .analytics-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .analytics-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .loading {
+            color: #667eea;
+            font-style: italic;
+            font-size: 18px;
+        }
+        .streak-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .score-display {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="header">
+            <h1>🤖 AI-Powered Flag Quiz</h1>
+            <div class="ai-badge">AI Learning Mode</div>
+        </div>
+        
+        <div class="score-display" id="scoreDisplay">
+            <div class="score-item">
+                <div class="score-value" id="score">0/0</div>
+                <div class="score-label">Score</div>
+            </div>
+            <div class="score-item">
+                <div class="score-value" id="streak">0</div>
+                <div class="score-label">Current Streak</div>
+            </div>
+            <div class="score-item">
+                <div class="score-value" id="skillLevel">-</div>
+                <div class="score-label">Skill Level</div>
+            </div>
+        </div>
+        
+        <div id="quiz-content">
+            <div class="loading">🧠 AI is preparing your personalized question...</div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="loadNewQuestion()">New Question</button>
+            <button class="btn btn-hint" onclick="getHint()" id="hintBtn">💡 Get Hint</button>
+            <button class="btn btn-analytics" onclick="showAnalytics()">📊 Analytics</button>
+            <button class="btn btn-secondary" onclick="resetScore()">Reset Score</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/'">Back to Welcome</button>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="analytics-modal">
+        <div class="analytics-content">
+            <button class="close-btn" onclick="hideAnalytics()">&times;</button>
+            <h2>📊 Your Learning Analytics</h2>
+            <div id="analyticsContent">
+                <div class="loading">Loading your progress...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = null;
+        let answered = false;
+        let questionStartTime = null;
+
+        async function loadNewQuestion() {
+            try {
+                document.getElementById('quiz-content').innerHTML = '<div class="loading">🧠 AI is selecting your next challenge...</div>';
+                answered = false;
+                questionStartTime = Date.now();
+                
+                const response = await fetch('/api/question');
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('quiz-content').innerHTML = 
+                        '<div class="feedback incorrect">Error: ' + data.error + '</div>' +
+                        '<p>Please make sure flag images are placed in the static/flags/ directory.</p>';
+                    return;
+                }
+                
+                currentQuestion = data;
+                displayQuestion(data);
+                updateScore();
+                
+                // Update hint button
+                const hintBtn = document.getElementById('hintBtn');
+                hintBtn.disabled = !data.has_hints;
+                hintBtn.style.opacity = data.has_hints ? '1' : '0.5';
+                
+            } catch (error) {
+                console.error('Error loading question:', error);
+                document.getElementById('quiz-content').innerHTML = 
+                    '<div class="feedback incorrect">Error loading question. Please try again.</div>';
+            }
+        }
+
+        function displayQuestion(question) {
+            // Generate difficulty stars
+            const difficultyStars = '★'.repeat(question.difficulty) + '☆'.repeat(4 - question.difficulty);
+            
+            const optionsHtml = question.options.map(option => 
+                `<button class="option-btn" onclick="selectAnswer('${option.replace(/'/g, "\'")}')">
+                    ${option}
+                </button>`
+            ).join('');
+            
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="difficulty-indicator">
+                    <span>Difficulty: </span>
+                    <span class="difficulty-star">${difficultyStars}</span>
+                </div>
+                <img src="/static/flags/${question.flag_image}" alt="Flag" class="flag-image" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGVlMmU2IiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNTAiIHk9IjEwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzZjNzU3ZCI+RmxhZyBub3QgZm91bmQ8L3RleHQ+PC9zdmc+'">
+                <p><strong>🌍 Which country does this flag belong to?</strong></p>
+                <div class="options">
+                    ${optionsHtml}
+                </div>
+            `;
+        }
+
+        async function selectAnswer(answer) {
+            if (answered) return;
+            answered = true;
+            
+            try {
+                const response = await fetch('/api/answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ answer: answer })
+                });
+                
+                const result = await response.json();
+                displayResult(result, answer);
+                updateScore();
+            } catch (error) {
+                console.error('Error checking answer:', error);
+            }
+        }
+
+        function displayResult(result, userAnswer) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent.trim() === result.correct_answer) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent.trim() === userAnswer && !result.correct) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            const feedbackClass = result.correct ? 'correct' : 'incorrect';
+            const emoji = result.correct ? '🎉' : '❌';
+            const feedbackText = result.correct ? 
+                `${emoji} Excellent! You got it right!` : 
+                `${emoji} Not quite! The correct answer is: ${result.correct_answer}`;
+            
+            let additionalInfo = '';
+            
+            // Add performance info
+            if (result.time_taken) {
+                additionalInfo += `<br><small>⏱️ Time: ${result.time_taken}s`;
+                if (result.hint_used) {
+                    additionalInfo += ' (hint used)';
+                }
+                additionalInfo += '</small>';
+            }
+            
+            // Add streak info
+            if (result.current_streak > 0) {
+                additionalInfo += `<br><small>🔥 Current streak: ${result.current_streak}</small>`;
+            }
+            
+            // Add recent accuracy
+            if (result.recent_accuracy !== undefined) {
+                additionalInfo += `<br><small>📈 Recent accuracy: ${result.recent_accuracy}%</small>`;
+            }
+            
+            const feedbackHtml = `<div class="feedback ${feedbackClass}">${feedbackText}${additionalInfo}</div>`;
+            
+            // Add fun fact if available
+            if (result.fun_fact) {
+                const factHtml = `<div class="fun-fact">💡 Did you know? ${result.fun_fact}</div>`;
+                document.getElementById('quiz-content').innerHTML += feedbackHtml + factHtml;
+            } else {
+                document.getElementById('quiz-content').innerHTML += feedbackHtml;
+            }
+        }
+
+        async function getHint() {
+            if (answered) return;
+            
+            try {
+                const response = await fetch('/api/hint');
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                // Remove existing hint box
+                const existingHint = document.querySelector('.hint-box');
+                if (existingHint) {
+                    existingHint.remove();
+                }
+                
+                const hintHtml = `<div class="hint-box">
+                    💡 Hint ${data.hint_number}/${data.total_hints}: ${data.hint}
+                </div>`;
+                
+                document.getElementById('quiz-content').innerHTML += hintHtml;
+                
+                // Update hint button
+                const hintBtn = document.getElementById('hintBtn');
+                if (data.last_hint) {
+                    hintBtn.disabled = true;
+                    hintBtn.textContent = 'No more hints';
+                    hintBtn.style.opacity = '0.5';
+                }
+                
+            } catch (error) {
+                console.error('Error getting hint:', error);
+            }
+        }
+
+        async function updateScore() {
+            try {
+                const response = await fetch('/api/score');
+                const data = await response.json();
+                
+                document.getElementById('score').textContent = `${data.score}/${data.total}`;
+                document.getElementById('streak').textContent = data.current_streak;
+                document.getElementById('skillLevel').textContent = data.skill_level;
+                
+            } catch (error) {
+                console.error('Error updating score:', error);
+            }
+        }
+
+        async function showAnalytics() {
+            document.getElementById('analyticsModal').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/analytics');
+                const data = await response.json();
+                
+                if (data.message) {
+                    document.getElementById('analyticsContent').innerHTML = 
+                        `<p>${data.message}</p><p>Start answering questions to see your progress!</p>`;
+                    return;
+                }
+                
+                const challengingFlagsHtml = data.challenging_flags.length > 0 ? 
+                    data.challenging_flags.map(flag => 
+                        `<li>${flag.flag} (${flag.mistakes} mistakes)</li>`
+                    ).join('') : '<li>None yet - keep practicing!</li>';
+                
+                document.getElementById('analyticsContent').innerHTML = `
+                    <div style="text-align: left;">
+                        <h3>📊 Performance Overview</h3>
+                        <p><strong>Overall Accuracy:</strong> ${data.accuracy}%</p>
+                        <p><strong>Average Response Time:</strong> ${data.avg_response_time}s</p>
+                        <p><strong>Session Duration:</strong> ${data.session_duration} minutes</p>
+                        
+                        <h3>🎯 Learning Progress</h3>
+                        <p><strong>Flags Mastered:</strong> ${data.mastered_count}/${data.total_flags_seen}</p>
+                        
+                        <h3>💪 Most Challenging Flags</h3>
+                        <ul>${challengingFlagsHtml}</ul>
+                        
+                        <p style="margin-top: 20px; font-size: 14px; color: #666;">
+                            💡 The AI adapts questions based on your performance to optimize learning!
+                        </p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                document.getElementById('analyticsContent').innerHTML = 
+                    '<p>Error loading analytics. Please try again.</p>';
+            }
+        }
+
+        function hideAnalytics() {
+            document.getElementById('analyticsModal').style.display = 'none';
+        }
+
+        async function resetScore() {
+            const resetAI = confirm('Reset learning data too? (This will clear your AI progress and start fresh)');
+            
+            try {
+                const url = resetAI ? '/api/reset?reset_ai=true' : '/api/reset';
+                await fetch(url);
+                updateScore();
+                document.getElementById('quiz-content').innerHTML = 
+                    '<div class="loading">Click "New Question" to start your ' + 
+                    (resetAI ? 'fresh learning journey' : 'quiz') + '!</div>';
+                
+                // Reset hint button
+                const hintBtn = document.getElementById('hintBtn');
+                hintBtn.disabled = false;
+                hintBtn.textContent = '💡 Get Hint';
+                hintBtn.style.opacity = '1';
+                
+            } catch (error) {
+                console.error('Error resetting score:', error);
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('analyticsModal');
+            if (event.target === modal) {
+                hideAnalytics();
+            }
+        }
+
+        // Load first question when page loads
+        window.onload = function() {
+            updateScore();
+            loadNewQuestion();
+        };
+    </script>
+</body>
+</html>
